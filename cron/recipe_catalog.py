@@ -213,6 +213,258 @@ CATALOG: List[CronRecipe] = [
         ],
         tags=("reminder",),
     ),
+    CronRecipe(
+        key="evening-winddown",
+        title="Evening wind-down",
+        description="An end-of-day check-in: tomorrow's calendar at a glance "
+        "and anything you should prep tonight.",
+        category="daily",
+        schedule_template="{minute} {hour} * * *",
+        prompt_template=(
+            "Give the user a short evening wind-down: tomorrow's calendar, any "
+            "early commitments to prep for, and one gentle nudge to wrap up "
+            "loose ends from today. Keep it calm and brief — one message. If no "
+            "calendar is connected, just offer a friendly sign-off and the "
+            "weather for tomorrow."
+        ),
+        slots=[_TIME("21:00"), _DELIVER],
+        tags=("daily", "evening"),
+    ),
+    CronRecipe(
+        key="news-digest",
+        title="Topic news digest",
+        description="A recurring digest on a topic you care about — deduped "
+        "against what was already sent, so only genuinely new items land.",
+        category="general",
+        schedule_template="{minute} {hour} * * {dow}",
+        prompt_template=(
+            "Search the web for new and noteworthy items about: {topic}. "
+            "Dedupe against what you sent in previous runs — only include "
+            "genuinely new developments. Deliver a tight digest of at most "
+            "{count} bullets, each one line with a link. If nothing new since "
+            "last run, respond with [SILENT]."
+        ),
+        slots=[
+            RecipeSlot(
+                name="topic", type="text", label="What topic?",
+                default="AI and technology",
+                help="a subject, product, person, or search phrase",
+            ),
+            _TIME("18:00"),
+            RecipeSlot(
+                name="recurrence", type="weekdays", label="Repeat on",
+                default="weekdays",
+                options=tuple(WEEKDAY_PRESETS.keys()),
+            ),
+            RecipeSlot(
+                name="count", type="enum", label="How many bullets?",
+                default="5", options=("3", "5", "8"),
+            ),
+            _DELIVER,
+        ],
+        tags=("digest", "research"),
+    ),
+    CronRecipe(
+        key="bill-renewal-watch",
+        title="Bills & renewals reminder",
+        description="A heads-up before a recurring payment, subscription "
+        "renewal, or due date — so nothing auto-charges by surprise.",
+        category="general",
+        schedule_template="{minute} {hour} * * {dow}",
+        prompt_template=(
+            "Remind the user about an upcoming payment or renewal: {what}. "
+            "Phrase it as an actionable heads-up (e.g. 'review or cancel before "
+            "it renews'), not just a notification. One short message."
+        ),
+        slots=[
+            RecipeSlot(
+                name="what", type="text", label="What's due?",
+                default="my streaming subscription renews soon",
+            ),
+            _TIME("10:00"),
+            RecipeSlot(
+                name="recurrence", type="weekdays", label="Repeat on",
+                default="everyday",
+                options=tuple(WEEKDAY_PRESETS.keys()),
+            ),
+            _DELIVER,
+        ],
+        tags=("reminder", "finance"),
+    ),
+    CronRecipe(
+        key="habit-checkin",
+        title="Habit check-in",
+        description="A recurring nudge to keep a habit on track and reflect "
+        "on whether you did it.",
+        category="general",
+        schedule_template="{minute} {hour} * * {dow}",
+        prompt_template=(
+            "Nudge the user about their habit: {habit}. Ask whether they did it "
+            "today, keep it warm and non-judgmental, and offer a one-line word "
+            "of encouragement. One short message."
+        ),
+        slots=[
+            RecipeSlot(
+                name="habit", type="text", label="Which habit?",
+                default="20 minutes of reading",
+            ),
+            _TIME("20:00"),
+            RecipeSlot(
+                name="recurrence", type="weekdays", label="Repeat on",
+                default="everyday",
+                options=tuple(WEEKDAY_PRESETS.keys()),
+            ),
+            _DELIVER,
+        ],
+        tags=("habit", "wellbeing"),
+    ),
+    CronRecipe(
+        key="hydration-move",
+        title="Hydration & movement nudge",
+        description="A periodic nudge during the day to drink water, stand up, "
+        "and stretch.",
+        category="general",
+        schedule_template="*/{interval_min} {start_hour}-{end_hour} * * 1-5",
+        prompt_template=(
+            "Send the user a brief, friendly nudge to drink some water, stand "
+            "up, and stretch for a moment. Vary the wording each time so it "
+            "doesn't feel robotic. One short line."
+        ),
+        slots=[
+            RecipeSlot(
+                name="interval_min", type="enum", label="How often?",
+                default="90", options=("60", "90", "120"),
+                help="minutes between nudges",
+            ),
+            RecipeSlot(
+                name="start_hour", type="enum", label="Start hour",
+                default="9", options=("7", "8", "9", "10"),
+                help="first hour of the active window (24h)",
+            ),
+            RecipeSlot(
+                name="end_hour", type="enum", label="End hour",
+                default="17", options=("16", "17", "18", "19"),
+                help="last hour of the active window (24h)",
+            ),
+            _DELIVER,
+        ],
+        tags=("wellbeing", "focus"),
+    ),
+    CronRecipe(
+        key="meal-plan",
+        title="Weekly meal plan",
+        description="A weekly meal plan plus a consolidated grocery list, "
+        "tuned to your diet and how much time you have to cook.",
+        category="weekly",
+        schedule_template="{minute} {hour} * * {dow}",
+        prompt_template=(
+            "Build the user a meal plan for the coming week: {meals} per day, "
+            "suited to a {diet} diet and roughly {effort} cooking effort. "
+            "Include a consolidated grocery list grouped by aisle. Keep recipes "
+            "simple and skimmable."
+        ),
+        slots=[
+            RecipeSlot(
+                name="diet", type="enum", label="Diet?",
+                default="no restrictions",
+                options=("no restrictions", "vegetarian", "vegan",
+                         "high-protein", "low-carb"),
+            ),
+            RecipeSlot(
+                name="meals", type="enum", label="Meals per day?",
+                default="dinner only",
+                options=("dinner only", "lunch and dinner", "all three"),
+            ),
+            RecipeSlot(
+                name="effort", type="enum", label="Cooking effort?",
+                default="quick", options=("quick", "medium", "ambitious"),
+            ),
+            _TIME("17:00"),
+            RecipeSlot(
+                name="day", type="enum", label="Which day?",
+                default="sunday",
+                options=("sunday", "monday", "friday", "saturday"),
+            ),
+            _DELIVER,
+        ],
+        tags=("weekly", "food"),
+    ),
+    CronRecipe(
+        key="learn-daily",
+        title="Daily learning drip",
+        description="One bite-sized lesson a day on a topic you want to learn, "
+        "building progressively over time.",
+        category="daily",
+        schedule_template="{minute} {hour} * * {dow}",
+        prompt_template=(
+            "Teach the user one bite-sized lesson about: {topic}. Build on "
+            "earlier lessons so it progresses rather than repeating. Keep it to "
+            "a couple of short paragraphs with one concrete example, and end "
+            "with a single question to check understanding."
+        ),
+        slots=[
+            RecipeSlot(
+                name="topic", type="text", label="Learn about…",
+                default="Spanish vocabulary",
+            ),
+            _TIME("08:30"),
+            RecipeSlot(
+                name="recurrence", type="weekdays", label="Repeat on",
+                default="weekdays",
+                options=tuple(WEEKDAY_PRESETS.keys()),
+            ),
+            _DELIVER,
+        ],
+        tags=("learning", "daily"),
+    ),
+    CronRecipe(
+        key="gratitude-journal",
+        title="Gratitude & reflection prompt",
+        description="A gentle evening prompt to reflect on the day and note "
+        "what went well.",
+        category="general",
+        schedule_template="{minute} {hour} * * {dow}",
+        prompt_template=(
+            "Send the user a short, warm reflection prompt for the end of the "
+            "day — invite them to note one thing that went well, one thing they "
+            "are grateful for, and one small win. If they reply, acknowledge it "
+            "kindly. One message."
+        ),
+        slots=[
+            _TIME("21:30"),
+            RecipeSlot(
+                name="recurrence", type="weekdays", label="Repeat on",
+                default="everyday",
+                options=tuple(WEEKDAY_PRESETS.keys()),
+            ),
+            _DELIVER,
+        ],
+        tags=("wellbeing", "reflection"),
+    ),
+    CronRecipe(
+        key="on-this-day",
+        title="On-this-day discovery",
+        description="A daily dose of curiosity: a notable historical event, "
+        "fact, or word for the day.",
+        category="daily",
+        schedule_template="{minute} {hour} * * *",
+        prompt_template=(
+            "Give the user one interesting '{flavor}' item for today — keep it "
+            "short, surprising, and genuinely interesting. One or two sentences, "
+            "no filler."
+        ),
+        slots=[
+            RecipeSlot(
+                name="flavor", type="enum", label="What kind?",
+                default="on this day in history",
+                options=("on this day in history", "word of the day",
+                         "science fact", "quote of the day"),
+            ),
+            _TIME("07:30"),
+            _DELIVER,
+        ],
+        tags=("daily", "curiosity"),
+    ),
 ]
 
 _CATALOG_BY_KEY = {r.key: r for r in CATALOG}
@@ -375,6 +627,13 @@ def _resolve_schedule(recipe: CronRecipe, values: Dict[str, Any]) -> str:
         if not iv.isdigit() or int(iv) <= 0:
             raise RecipeFillError(f"invalid interval {iv!r} — minutes as a positive integer")
         repl["interval_min"] = iv
+
+    # Any remaining {slot} placeholders are filled verbatim from validated
+    # enum/text slot values (e.g. an hour-range window). Enum options have
+    # already been checked in fill_recipe, so these are safe to interpolate.
+    for name in re.findall(r"\{(\w+)\}", sched):
+        if name not in repl and name in values:
+            repl[name] = str(values[name])
 
     try:
         return sched.format(**repl)
