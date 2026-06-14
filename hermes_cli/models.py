@@ -1251,6 +1251,14 @@ _PROVIDER_ALIASES = {
 # hit the Portal; this fallback must stay cheap and network-free.
 _PROVIDER_SILENT_DEFAULT_OVERRIDES: dict[str, str] = {
     "nous": "deepseek/deepseek-v4-flash",
+    # Fable 5 is SUSPENDED (2026-06-12 US-gov directive; all other Anthropic
+    # models unaffected — https://www.anthropic.com/news/fable-mythos-access).
+    # It still leads the `anthropic` curated list (kept for the picker + for when
+    # it's restored), so without this override get_default_model_for_provider
+    # ("anthropic") would silently route a model-less Anthropic profile to a model
+    # that returns errors. Pin the silent default to the current head, Opus 4.8.
+    # Remove this line when Fable 5 access is restored.
+    "anthropic": "claude-opus-4-8",
 }
 
 
