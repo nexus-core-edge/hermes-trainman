@@ -15,7 +15,7 @@
 2. `$FRIDAY_VAULT/ACTIVE/projects/<slug>/` — **brain.md** + **learnings.md** of what you're touching
 3. GitHub Issues `label:task` — the only work queue
 
-## The 19 hard rules
+## The 20 hard rules
 
 1. **Blocked? Stop and report.** Never invent a workaround, fallback, or new script around a block.
 2. **Never work on `main`.** Branch first: `<agent>/<short-task>-<id>`.
@@ -36,6 +36,7 @@
 17. **No undeclared nested git repos.** Submodule it, gitignore it, or move it out. Before bulk adds: `find . -name .git -mindepth 2`.
 18. **Session end → distill to the vault.** Non-obvious lessons go to `$FRIDAY_VAULT/ACTIVE/projects/<slug>/learnings.md` (PR `chore/<slug>-learnings-<date>`; the distill-to-vault skill) — private agent memory is a working set, never the handoff.
 19. **A tool that prints a secret has published it — pipe, never display.** Assume any CLI may print a credential you did not ask for: `claude setup-token` prints the token, and Supabase's `GET /v1/projects/{ref}/postgrest` returns `jwt_secret` beside the schema config (both hit on 2026-08-29). Redirect to a 0600 file or extract the single field you need — never let it render into a pane, a scrollback or a tool result. Once it has rendered it is exposed: rotate it, don't reason about who saw it.
+20. **Clean up after yourself.** When the PR lands, remove your worktrees, test files, temp and `.bak` copies; nothing lives loose in `/root` or outside the workspace's repos; on a server, credentials live only in `friday-secrets` (a dev box may keep the gitignored `.env.local` that `vercel env pull` writes). Leave the record (PR, issue, day note), not the debris (Director, 2026-09-30).
 
 ## The learning loop (make the system smarter)
 - Failure / non-obvious fix → `learning_log(...)`; recurring → GitHub issue `label:failure`.
